@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
+import java.util.List;
+
 @Data
 @Builder
 public class Market{
@@ -13,4 +15,5 @@ public class Market{
     String name;
     Boolean displayed;
     Boolean suspended;
+    List<Outcome> outcomes;
 }

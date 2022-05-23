@@ -3,6 +3,8 @@ package jm.skybet.feedme.demo.model;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
+import java.util.List;
+
 
 @Data
 @Builder
@@ -15,4 +17,5 @@ public class Event{
     Long startTime;
     Boolean displayed;
     Boolean suspended;
+    List<Market> markets;
 }

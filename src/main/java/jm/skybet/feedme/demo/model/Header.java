@@ -16,7 +16,7 @@ public class Header {
     private static final String TYPE_OUTCOME = "outcome";
 
     Long msgId;
-    String operation;
-    String type;
+    Operation operation;
+    Type type;
     Long timestamp;
 }
