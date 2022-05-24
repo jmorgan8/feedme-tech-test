@@ -7,13 +7,20 @@ import jm.skybet.feedme.demo.model.Type;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.nio.Buffer;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,6 +34,9 @@ public class FeedMeServiceTest {
     private FeedMeService feedMeService;
 
     @Mock
+    private BufferedReader bufferedReader;
+
+    @Mock
     private FeedMeServiceProperties feedMeServiceProperties;
 
     @Mock
@@ -38,8 +48,7 @@ public class FeedMeServiceTest {
     }
 
     @Test
-    public void whenAddCalledRealMethodCalled() throws IOException {
-        BufferedReader bufferedReader = Mockito.mock(BufferedReader.class);
+    public void shouldMapFixturesForDifferentTypes() throws IOException {
         when(bufferedReader.readLine()).thenReturn(EVENT_LINE, MARKET_LINE, OUTCOME_LINE1, OUTCOME_LINE2, OUTCOME_LINE3, null);
 
         when(fixtureMapper.mapHeader(buildEventValues())).thenReturn(expectedHeader(1L, Type.event));
@@ -54,6 +63,32 @@ public class FeedMeServiceTest {
         verify(fixtureMapper, times(1)).mapEvent(any());
         verify(fixtureMapper, times(1)).mapMarket(any());
         verify(fixtureMapper, times(3)).mapOutcome(any());
+    }
+
+    @Test
+    public void shouldThrowUnknownHostExceptionWhenProcessFeed() {
+        when(feedMeServiceProperties.getHost()).thenReturn("NOT A HOST");
+
+        final UnknownHostException exception = assertThrows(UnknownHostException.class,
+                () -> feedMeService.processFeed());
+
+        assertThat(exception.getMessage(), is("Server not found: NOT A HOST"));
+
+        verifyNoInteractions(fixtureMapper);
+    }
+
+    @Test
+    public void shouldThrowIOExceptionWhenReadFixtures() throws IOException {
+        doThrow(new IOException("I/O error: No lines to read"))
+                .when(bufferedReader)
+                .readLine();
+
+        final IOException exception = assertThrows(IOException.class,
+                () -> feedMeService.readFixtures(bufferedReader));
+
+        assertThat(exception.getMessage(), is("I/O error: No lines to read"));
+
+        verifyNoInteractions(fixtureMapper);
     }
 
     private static String[] buildEventValues() {

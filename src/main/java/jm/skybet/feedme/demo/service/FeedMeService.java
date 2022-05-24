@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -20,7 +21,7 @@ import java.util.List;
 public class FeedMeService {
     private final FeedMeServiceProperties feedMeServiceProperties;
     private final FixtureMapper fixtureMapper;
-    public void processFeed() {
+    public void processFeed() throws IOException {
         try (Socket socket = new Socket(feedMeServiceProperties.getHost(), feedMeServiceProperties.getPort())) {
             InputStream input = socket.getInputStream();
 
@@ -28,8 +29,10 @@ public class FeedMeService {
             readFixtures(reader);
         } catch (UnknownHostException ex) {
             System.out.println("Server not found: " + ex.getMessage());
+            throw new UnknownHostException("Server not found: " + ex.getMessage());
         } catch (IOException ex) {
             System.out.println("I/O error: " + ex.getMessage());
+            throw new IOException("I/O error: " + ex.getMessage());
         }
     }
 
