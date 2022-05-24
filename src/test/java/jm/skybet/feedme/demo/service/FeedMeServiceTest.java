@@ -4,6 +4,7 @@ import jm.skybet.feedme.demo.mapping.FixtureMapper;
 import jm.skybet.feedme.demo.model.Header;
 import jm.skybet.feedme.demo.model.Operation;
 import jm.skybet.feedme.demo.model.Type;
+import jm.skybet.feedme.demo.repository.FixtureRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -42,13 +44,19 @@ public class FeedMeServiceTest {
     @Mock
     private FixtureMapper fixtureMapper;
 
+    @Mock
+    private FixtureRepository fixtureRepository;
+
+    @Mock
+    private MongoTemplate mongoTemplate;
+
     @BeforeEach
     void setUp() {
-        feedMeService = new FeedMeService(feedMeServiceProperties, fixtureMapper);
+        feedMeService = new FeedMeService(feedMeServiceProperties, fixtureMapper, fixtureRepository, mongoTemplate);
     }
 
     @Test
-    public void shouldMapFixturesForDifferentTypes() throws IOException {
+    public void shouldMapFixturesForDifferentTypes() throws Exception {
         when(bufferedReader.readLine()).thenReturn(EVENT_LINE, MARKET_LINE, OUTCOME_LINE1, OUTCOME_LINE2, OUTCOME_LINE3, null);
 
         when(fixtureMapper.mapHeader(buildEventValues())).thenReturn(expectedHeader(1L, Type.event));
