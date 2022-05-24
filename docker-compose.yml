@@ -38,6 +38,7 @@ services:
       ports:
         - "8181:8181"
         - "8282:8282"
+
   app:
       image: jmorgan8/testdemo:latest
       ports:
