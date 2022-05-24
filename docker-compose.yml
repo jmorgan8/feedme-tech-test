@@ -1,4 +1,4 @@
-version: '2'
+version: '1'
 services:
   #mongo:
   #  image: mongo
@@ -38,3 +38,12 @@ services:
       ports:
         - "8181:8181"
         - "8282:8282"
+
+  app:
+      image: jmorgan8/testdemo:latest
+      ports:
+        - "8080:8080"
+      environment:
+        JM_SKYBET_FEEDME_DEMO_HOST: provider
+      depends_on:
+        - provider
