@@ -30,25 +30,27 @@ class FixtureMapperTest {
     @Test
     void shouldMapEvent() {
         final String[] values = buildEventValues();
-        Event event = mapper.mapEvent(values);
+        Fixture event = mapper.mapEvent(values);
 
-        assertThat(event, samePropertyValuesAs(expectedEvent()));
+        assertThat(event, samePropertyValuesAs(buildFixtureEventInfoOnly()));
     }
 
     @Test
     void shouldMapMarket() {
+        Fixture fixture = buildFixtureEventInfoOnly();
         final String[] values = buildMarketValues();
-        Market event = mapper.mapMarket(values);
+        mapper.mapMarket(fixture, values);
 
-        assertThat(event, samePropertyValuesAs(expectedMarket()));
+        assertThat(fixture, samePropertyValuesAs(buildFixtureEventAndMarketInfo()));
     }
 
     @Test
     void shouldMapOutcome() {
+        Fixture fixture = buildFixtureEventAndMarketInfo();
         final String[] values = buildOutcomeValues();
-        Outcome outcome = mapper.mapOutcome(values);
+        mapper.mapOutcome(fixture, values);
 
-        assertThat(outcome, samePropertyValuesAs(expectedOutcome()));
+        assertThat(fixture, samePropertyValuesAs(buildFixtureAllInfo()));
     }
 
     private static Stream<Arguments> fixtureArguments(){
@@ -80,36 +82,52 @@ class FixtureMapperTest {
                 .build();
     }
 
-    private Event expectedEvent() {
-        return Event.builder()
+    private Fixture buildFixtureEventInfoOnly() {
+        return Fixture.builder()
                 .eventId("df268eab-a4f0-4749-bf78-1fa9446d403e")
                 .category("Football")
                 .subCategory("Sky Bet League One")
-                .name("|MK Dons| vs |Oxford|")
+                .eventName("|MK Dons| vs |Oxford|")
                 .startTime(1653341165688L)
-                .displayed(false)
-                .suspended(true)
+                .eventDisplayed(false)
+                .eventSuspended(true)
                 .build();
     }
 
-    private Market expectedMarket() {
-        return Market.builder()
+    private Fixture buildFixtureEventAndMarketInfo() {
+        return Fixture.builder()
                 .eventId("df268eab-a4f0-4749-bf78-1fa9446d403e")
+                .category("Football")
+                .subCategory("Sky Bet League One")
+                .eventName("|MK Dons| vs |Oxford|")
+                .startTime(1653341165688L)
+                .eventDisplayed(false)
+                .eventSuspended(true)
                 .marketId("03b3e2c4-5470-4792-a1b8-1d35f19e8017")
-                .name("Full Time Result")
-                .displayed(false)
-                .suspended(true)
+                .marketName("Full Time Result")
+                .marketDisplayed(false)
+                .marketSuspended(true)
                 .build();
     }
 
-    private Outcome expectedOutcome() {
-        return Outcome.builder()
+    private Fixture buildFixtureAllInfo() {
+        return Fixture.builder()
+                .eventId("df268eab-a4f0-4749-bf78-1fa9446d403e")
+                .category("Football")
+                .subCategory("Sky Bet League One")
+                .eventName("|MK Dons| vs |Oxford|")
+                .startTime(1653341165688L)
+                .eventDisplayed(false)
+                .eventSuspended(true)
                 .marketId("03b3e2c4-5470-4792-a1b8-1d35f19e8017")
+                .marketName("Full Time Result")
+                .marketDisplayed(false)
+                .marketSuspended(true)
                 .outcomeId("f2a092e1-46b5-474b-8907-6e9b4998750a")
-                .name("|MK Dons|")
+                .outcomeName("|MK Dons|")
                 .price("1/6")
-                .displayed(false)
-                .suspended(true)
+                .outcomeDisplayed(false)
+                .outcomeSuspended(true)
                 .build();
     }
 

@@ -1,17 +1,18 @@
 package jm.skybet.feedme.demo.repository;
 
-import jm.skybet.feedme.demo.model.Event;
+import jm.skybet.feedme.demo.model.Fixture;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
-import org.springframework.data.mongodb.repository.Update;
 
-public interface FixtureRepository extends MongoRepository<Event, String> {
-    @Query(value = "{ 'eventId' : ?0, 'markets.marketId' : ?1 }")
-    Event findByMarketId(String eventId, String marketId);
+import java.util.List;
 
-    @Query(value = "{ 'markets.marketId' : ?0 }")
-    Event findByMarketId(String marketId);
+public interface FixtureRepository extends MongoRepository<Fixture, String> {
+    @Query(value = "{ 'eventId' : ?0 }")
+    List<Fixture> findByEventId(String eventId);
 
-    @Query(value = "{ 'markets.outcomes.outcomeId' : ?0 }")
-    Event findByOutcomeId(String outcomeId);
+    @Query(value = "{ 'marketId' : ?0 }")
+    List<Fixture> findByMarketId(String marketId);
+
+    @Query(value = "{ 'outcomeId' : ?0 }")
+    List<Fixture> findByOutcomeId(String outcomeId);
 }

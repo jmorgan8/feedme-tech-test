@@ -47,12 +47,9 @@ public class FeedMeServiceTest {
     @Mock
     private FixtureRepository fixtureRepository;
 
-    @Mock
-    private MongoTemplate mongoTemplate;
-
     @BeforeEach
     void setUp() {
-        feedMeService = new FeedMeService(feedMeServiceProperties, fixtureMapper, fixtureRepository, mongoTemplate);
+        feedMeService = new FeedMeService(feedMeServiceProperties, fixtureMapper, fixtureRepository);
     }
 
     @Test
@@ -69,8 +66,8 @@ public class FeedMeServiceTest {
         feedMeService.readFixtures(bufferedReader);
         verify(fixtureMapper, times(5)).mapHeader(any());
         verify(fixtureMapper, times(1)).mapEvent(any());
-        verify(fixtureMapper, times(1)).mapMarket(any());
-        verify(fixtureMapper, times(3)).mapOutcome(any());
+        verify(fixtureMapper, times(1)).mapMarket(any(), any());
+        verify(fixtureMapper, times(3)).mapOutcome(any(), any());
     }
 
     @Test

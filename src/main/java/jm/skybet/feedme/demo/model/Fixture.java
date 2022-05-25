@@ -5,21 +5,28 @@ import lombok.extern.jackson.Jacksonized;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
-
 
 @Data
 @Builder
 @Jacksonized
 @Document(collection = "fixture")
-public class Event{
+public class Fixture {
     @Id
+    String id;
     String eventId;
     String category;
     String subCategory;
-    String name;
+    String eventName;
     Long startTime;
-    Boolean displayed;
-    Boolean suspended;
-    List<Market> markets;
+    Boolean eventDisplayed;
+    Boolean eventSuspended;
+    String marketId;
+    String marketName;
+    Boolean marketDisplayed;
+    Boolean marketSuspended;
+    String outcomeId;
+    String outcomeName;
+    String price;
+    Boolean outcomeDisplayed;
+    Boolean outcomeSuspended;
 }
