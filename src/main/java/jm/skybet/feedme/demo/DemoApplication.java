@@ -13,6 +13,7 @@ public class DemoApplication {
 		ApplicationContext applicationContext = SpringApplication.run(DemoApplication.class, args);
 		FeedMeService service = applicationContext.getBean(FeedMeService.class);
 		service.processFeed();
+		SpringApplication.exit(applicationContext, () -> 0);
 	}
 
 }

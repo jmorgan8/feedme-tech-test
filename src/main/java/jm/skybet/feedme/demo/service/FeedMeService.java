@@ -51,15 +51,14 @@ public class FeedMeService {
     public void readFixtures(BufferedReader reader) throws Exception {
         Fixture fixture = null;
         String line;    // reads a line of text
-        int count = 0; //Use for local testing
+        //int count = 0; //Use for local testing
 
         // ObjectMapper mapper = new ObjectMapper();
         // String json;
 
-        while (((line = reader.readLine()) != null) && count < 300) {
-            System.out.println(line);
+        while (((line = reader.readLine()) != null)) {
             String[] values = cleanupFixture(line);
-            count++;
+            // count++; //Use for local testing
 
             Header header = fixtureMapper.mapHeader(values);
 
