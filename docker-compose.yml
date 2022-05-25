@@ -1,9 +1,9 @@
-version: '1'
+version: '2'
 services:
-  #mongo:
-  #  image: mongo
-  #  ports:
-  #    - "27017:27017"
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
 
   #zookeeper:
   #  image: wurstmeister/zookeeper
@@ -40,10 +40,12 @@ services:
         - "8282:8282"
 
   app:
-      image: jmorgan8/testdemo:latest
+      image: jmorgan8/feedmetodb:latest
       ports:
         - "8080:8080"
       environment:
         JM_SKYBET_FEEDME_DEMO_HOST: provider
+        SPRING_DATA_MONGODB_HOST: mongo
       depends_on:
         - provider
+        - mongo

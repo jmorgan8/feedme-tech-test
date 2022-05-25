@@ -17,37 +17,40 @@ public class FixtureMapper {
                 .build();
     }
 
-    public Event mapEvent(String[] values) {
-        return Event.builder()
+    public Fixture mapEvent(String[] values) {
+        return Fixture.builder()
                 .eventId(values[4])
                 .category(values[5])
                 .subCategory(values[6])
-                .name(addPipes(values[7]))
+                .eventName(addPipes(values[7]))
                 .startTime(Long.valueOf(values[8]))
-                .displayed(Integer.parseInt(values[9]) == 1)
-                .suspended(Integer.parseInt(values[10]) == 1)
+                .eventDisplayed(Integer.parseInt(values[9]) == 1)
+                .eventSuspended(Integer.parseInt(values[10]) == 1)
                 .build();
     }
 
-    public Market mapMarket(String[] values) {
-        return Market.builder()
-                .eventId(values[4])
-                .marketId(values[5])
-                .name(addPipes(values[6]))
-                .displayed(Integer.parseInt(values[7]) == 1)
-                .suspended(Integer.parseInt(values[8]) == 1)
-                .build();
+    public void mapEvent(Fixture fixture, String[] values) {
+        fixture.setCategory(values[5]);
+        fixture.setSubCategory(values[6]);
+        fixture.setEventName(addPipes(values[7]));
+        fixture.setStartTime(Long.valueOf(values[8]));
+        fixture.setEventDisplayed(Integer.parseInt(values[9]) == 1);
+        fixture.setEventSuspended(Integer.parseInt(values[10]) == 1);
     }
 
-    public Outcome mapOutcome(String[] values) {
-        return Outcome.builder()
-                .marketId(values[4])
-                .outcomeId(values[5])
-                .name(addPipes(values[6]))
-                .price(values[7])
-                .displayed(Integer.parseInt(values[8]) == 1)
-                .suspended(Integer.parseInt(values[9]) == 1)
-                .build();
+    public void mapMarket(Fixture fixture, String[] values) {
+        fixture.setMarketId(addPipes(values[5]));
+        fixture.setMarketName(addPipes(values[6]));
+        fixture.setMarketDisplayed(Integer.parseInt(values[7]) == 1);
+        fixture.setMarketSuspended(Integer.parseInt(values[8]) == 1);
+    }
+
+    public void mapOutcome(Fixture fixture, String[] values) {
+        fixture.setOutcomeId(values[5]);
+        fixture.setOutcomeName(addPipes(values[6]));
+        fixture.setPrice(values[7]);
+        fixture.setOutcomeDisplayed(Integer.parseInt(values[8]) == 1);
+        fixture.setOutcomeSuspended(Integer.parseInt(values[9]) == 1);
     }
 
     public String addPipes(String line) {

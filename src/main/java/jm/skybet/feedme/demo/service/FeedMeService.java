@@ -3,6 +3,7 @@ package jm.skybet.feedme.demo.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jm.skybet.feedme.demo.mapping.FixtureMapper;
 import jm.skybet.feedme.demo.model.*;
+import jm.skybet.feedme.demo.repository.FixtureRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +13,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -21,6 +20,8 @@ import java.util.List;
 public class FeedMeService {
     private final FeedMeServiceProperties feedMeServiceProperties;
     private final FixtureMapper fixtureMapper;
+    private final FixtureRepository fixtureRepository;
+
     public void processFeed() throws IOException {
         try (Socket socket = new Socket(feedMeServiceProperties.getHost(), feedMeServiceProperties.getPort())) {
             InputStream input = socket.getInputStream();
@@ -33,6 +34,8 @@ public class FeedMeService {
         } catch (IOException ex) {
             System.out.println("I/O error: " + ex.getMessage());
             throw new IOException("I/O error: " + ex.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -45,69 +48,101 @@ public class FeedMeService {
         return line.split("\\|");
     }
 
-    public void readFixtures(BufferedReader reader) throws IOException {
-        Event event = null;
-        Market market = null;
-        Outcome outcome;
-        List<Market> markets = new ArrayList<>();
-        List<Outcome> outcomes = new ArrayList<>();
-        String currentEventId = null;
-        String currentMarketId = null;
-        String fixture;    // reads a line of text
-        // int count = 0; Use for local testing
+    public void readFixtures(BufferedReader reader) throws Exception {
+        Fixture fixture = null;
+        String line;    // reads a line of text
+        //int count = 0; //Use for local testing
 
-        ObjectMapper mapper = new ObjectMapper();
-        String json;
+        // ObjectMapper mapper = new ObjectMapper();
+        // String json;
 
-        while (((fixture = reader.readLine()) != null)) {
-            String[] values = cleanupFixture(fixture);
-            // count++;
+        while (((line = reader.readLine()) != null)) {
+            String[] values = cleanupFixture(line);
+            // count++; //Use for local testing
 
             Header header = fixtureMapper.mapHeader(values);
 
-            if (header.getOperation().equals(Operation.create)) {
-                if (header.getType().equals(Type.event)) {
-                    if (currentEventId != null) {
-                        // If we're here, it's a new event, refresh necessary variables
-                        json = mapper.writeValueAsString(event);
-                        System.out.println(json);
+//            if (count < 1000) {
+//                continue;
+//            }
 
-                        // Initialise lists for new market and outcomes
-                        markets = new ArrayList<>();
-                        outcomes = new ArrayList<>();
-                    }
-                    currentEventId = values[4];
-                    event = fixtureMapper.mapEvent(values);
-                }
+            // Basic rules:
+            // 1. When create:
+            //  1.1  All event, market and outcomes come sequentially
+            //  1.2  Inserts will start at outcome level as that is the most denormalised form
+            // 2. When update:
+            //  2.1  If event comes through, all markets and outcomes follow (usually to reverse
+            //       the displayed and suspended flags
+            //  2.2  Outcomes can be updated independently - usually to change the price
 
-                if (header.getType().equals(Type.market)) {
-                    // If not null, we have a new market so add the previous to list
-                    if (currentMarketId != null) {
-                        // Initialise outcomes for new market
-                        outcomes = new ArrayList<>();
-                    }
-                    currentMarketId = values[5];
-                    market = fixtureMapper.mapMarket(values);
+            if (header.getType().equals(Type.event)) {
+                    fixture = populateEvent(header.getOperation(), values);
+                } else if (header.getType().equals(Type.market)) {
+                    fixture = populateMarket(header.getOperation(),values, fixture);
+                } else if (header.getType().equals(Type.outcome)) {
+                        fixture = populateOutcome(header.getOperation(),values, fixture);
+                        // json = mapper.writeValueAsString(fixture);
+                        // Fixture is not null when operation is in create mode
+                        if (fixture != null) {
+                            //System.out.println("Saving event in loop: " + json);
+                            fixture = fixtureRepository.save(fixture);
+                            // Remove id so it treats the next fixture as new
+                            fixture.setId(null);
+                        }
 
-                    if (event != null) {
-                        markets.add(market);
-                        event.setMarkets(markets);
-                    }
-                }
-
-                if (header.getType().equals(Type.outcome)) {
-                    outcome = fixtureMapper.mapOutcome(values);
-
-                    if (market != null) {
-                        outcomes.add(outcome);
-                        market.setOutcomes(outcomes);
-                    }
+                } else {
+                    throw new Exception("Invalid type passed in");
                 }
             }
-//                  else if (header.getOperation().equals(OPERATION_UPDATE)) {
-//                    // do nothing for now until we get records from DB
-//                    continue;
-//                }
+        }
+
+    public Fixture populateEvent(Operation operation, String[] values) throws Exception {
+        if (operation.equals(Operation.create)) {
+            return fixtureMapper.mapEvent(values);
+        } else if (operation.equals(Operation.update)) {
+            List<Fixture> fixtures = fixtureRepository.findByEventId(values[4]);
+            //System.out.println("Found fixture from event: " + fixtures);
+            fixtures.forEach(fixture -> fixtureMapper.mapEvent(fixture, values));
+            //System.out.println("Updated fixture from event: " + fixtures);
+            fixtureRepository.saveAll(fixtures);
+
+            return null;
+        } else {
+            throw new Exception("Invalid Operation passed in");
+        }
+    }
+
+    public Fixture populateMarket(Operation operation, String[] values, Fixture fixture) throws Exception {
+        if (operation.equals(Operation.create)) {
+            fixtureMapper.mapMarket(fixture, values);
+            return fixture;
+        } else if (operation.equals(Operation.update)) {
+            List<Fixture> fixtures = fixtureRepository.findByMarketId(values[5]);
+            //System.out.println("Found fixtures from market: " + fixtures);
+            fixtures.forEach(fxtr -> fixtureMapper.mapMarket(fxtr, values));
+            //System.out.println("Updated fixture from market: " + fixtures);
+            fixtureRepository.saveAll(fixtures);
+
+            return null;
+        } else {
+            throw new Exception("Invalid Operation passed in");
+        }
+    }
+
+    public Fixture populateOutcome(Operation operation, String[] values, Fixture fixture) throws Exception {
+        if (operation.equals(Operation.create)) {
+            fixtureMapper.mapOutcome(fixture, values);
+            return fixture;
+        } else if (operation.equals(Operation.update)) {
+            List<Fixture> fixtures = fixtureRepository.findByOutcomeId(values[5]);
+            //System.out.println("Found fixtures from outcome: " + fixtures);
+            fixtures.forEach(fxtr -> fixtureMapper.mapOutcome(fxtr, values));
+            //System.out.println("Updated fixtures from outcome: " + fixtures);
+            fixtureRepository.saveAll(fixtures);
+
+            return null;
+        } else {
+            throw new Exception("Invalid Operation passed in");
         }
     }
 }
